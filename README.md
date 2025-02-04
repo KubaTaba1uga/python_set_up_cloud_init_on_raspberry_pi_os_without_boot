@@ -2,6 +2,11 @@
 
 This repository provides an automated method to configure cloud-init for Raspberry Pi OS Lite images.
 
+To clone repo with submodules use:
+```
+git clone --recursive https://github.com/KubaTaba1uga/raspberry_os_lite_cloud_init.git
+```
+
 ## Prerequisites
 Ensure you have the following installed on your system:
 - `bash`

@@ -1,41 +1,53 @@
 #!/usr/bin/env python3
-import os
 import argparse
-import tempfile
+import os
 import subprocess
+import tempfile
 from string import Template
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Render cloud-init shell script with custom user-data, meta-data, and fs_label."
-    )
+    parser = argparse.ArgumentParser(description="Set up cloud-init on .img file.")
+    parser.add_argument("img_file", help="Path to the image file.")
+
     parser.add_argument(
         "--user-data",
-        default="templates/user-data",
-        help=("Path to the file containing user-data content. "
-              "If not provided, a default template will be used.")
+        default=os.path.join(current_dir, "templates", "user-data"),
+        help=(
+            "Path to the file containing user-data content. "
+            "If not provided, a default template will be used."
+        ),
     )
+
     parser.add_argument(
         "--meta-data",
-        default="templates/meta-data",
-        help=("Path to the file containing meta-data content. "
-              "If not provided, a default template will be used.")
+        default=os.path.join(current_dir, "templates", "meta-data"),
+        help=(
+            "Path to the file containing meta-data content. "
+            "If not provided, a default template will be used."
+        ),
     )
+
+    parser.add_argument(
+        "--extra-script",
+        default=None,
+        help="Path to the script which will be additionally executed during cloud-init configuration.",
+    )
+
     parser.add_argument(
         "--fs-label",
         default="bootfs",
-        help="Value for the fs_label in cloud-init configuration. (default: bootfs)"
+        help="Value for the fs_label in cloud-init configuration. (default: bootfs)",
     )
+
     parser.add_argument(
         "--sandbox-script",
-        required=True,
-        help="Path to the sandbox.sh script file."
+        default=os.path.join(current_dir, "sandbox", "sandbox.sh"),
+        help="Path to the sandbox.sh script file.",
     )
-    parser.add_argument(
-        "--img-file",
-        required=True,
-        help="Path to the image file."
-    )
+
     args = parser.parse_args()
 
     try:
@@ -51,6 +63,16 @@ def main():
     except Exception as e:
         print(f"Error reading meta-data file: {e}")
         exit(1)
+
+    if args.extra_script:
+        try:
+            with open(args.extra_script, "r") as f:
+                extra_script = f.read()
+        except Exception as e:
+            print(f"Error reading meta-data file: {e}")
+            exit(1)
+    else:
+        extra_script = ""
 
     fs_label = args.fs_label
 
@@ -70,7 +92,7 @@ def main():
         USER_DATA_TEMPLATE=user_data,
         META_DATA_TEMPLATE=meta_data,
         FS_LABEL=fs_label,
-        EXTRA_SCRIPT=""
+        EXTRA_SCRIPT=extra_script,
     )
 
     # Create a temporary file to store the rendered script
@@ -78,19 +100,31 @@ def main():
         temp_file.write(rendered_script.encode("utf-8"))
         temp_path = temp_file.name
 
-    print(f"Rendered script saved to {temp_path}")
+        print(f"Rendered script saved to {temp_path}")
 
     # Run the sandbox script with the required arguments
     try:
-        subprocess.run([
-            "sudo", "bash", args.sandbox_script, args.img_file, "--arm64", "--script", temp_path
-        ], stdout=None, stderr=None, check=True)
+        subprocess.run(
+            [
+                "sudo",
+                "bash",
+                args.sandbox_script,
+                args.img_file,
+                "--arm64",
+                "--script",
+                temp_path,
+            ],
+            stdout=None,
+            stderr=None,
+            check=True,
+        )
     except subprocess.CalledProcessError as e:
         print(f"Error executing sandbox script: {e}")
         exit(1)
+    finally:
+        # Delete the temporary file once the subprocess is done
+        os.remove(temp_path)
+
 
 if __name__ == "__main__":
     main()
-
-
-
