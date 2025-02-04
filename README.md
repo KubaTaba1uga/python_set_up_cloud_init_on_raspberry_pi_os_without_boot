@@ -29,6 +29,10 @@ This process modifies a Raspberry Pi OS Lite image by injecting the cloud-init c
 - Ensure the script is executed with `sudo` permissions.
 - This script is designed for ARM64 architecture (`--arm64` flag). Modify as needed for other architectures.
 - Once your `.img` file is modified, you can run `sandbox.sh` again to modify `user-data` or `meta-data` as needed.
+- If cloud-init is not setting users or hostname, ensure that the boot partition label matches the one specified in 99_nocloud.cfg. You can check partition labels using:
+```
+blkid
+```
 
 ## License
 This project is open-source under the MIT License.

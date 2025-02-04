@@ -1,6 +1,5 @@
 #!/bin/bash
-
-set -e
+set -exu pipeline
 
 # Update package list
 apt-get update
@@ -14,43 +13,36 @@ apt-get remove -y network-manager
 # Ensure /boot directory exists
 mkdir -p /boot
 
-# Create user-data file
+# Create user-data file using template variable
 cat <<EOF > /boot/user-data
-#cloud-config
-users:
-  - name: dummy
-    sudo: ['ALL=(ALL) NOPASSWD:ALL']
-    shell: /bin/bash
-    lock_passwd: false
-chpasswd:
-  expire: false
-  users:
-  - {name: dummy, password: pass, type: text}
-ssh_pwauth: false
+$USER_DATA_TEMPLATE
 EOF
 
-# Create meta-data file
+# Create meta-data file using template variable
 cat <<EOF > /boot/meta-data
-instance-id: nocloud
-local-hostname: rpi-ci
+$META_DATA_TEMPLATE
 EOF
 
 # Ensure cloud-init configuration directory exists
 mkdir -p /etc/cloud/cloud.cfg.d/
 
-# Create 99_nocloud.cfg file
+# Create 99_nocloud.cfg file using fs_label variable
 cat <<EOF > /etc/cloud/cloud.cfg.d/99_nocloud.cfg
 datasource_list: [ NoCloud, None ]
 datasource:
   NoCloud:
-    seedfrom: /boot/firmware
+    fs_label: $FS_LABEL
 EOF
 
-# Ensure cloud-init run after disks are mounted
+# Ensure cloud-init runs after disks are mounted
 systemctl enable cloud-init-local.service
 
-# Disable userconfig.service
+# Disable userconfig.service (if present)
 systemctl disable userconfig.service || echo "userconfig.service not found, skipping."
+
+# Ensure we log into tty
+systemctl set-default multi-user.target
+systemctl enable getty@tty1.service
 
 # Enable cloud-init
 systemctl enable cloud-init
@@ -58,4 +50,7 @@ systemctl enable cloud-init
 # Remove init=/usr/lib/raspberrypi-sys-mods/firstboot from /boot/cmdline.txt
 sed -i 's|init=/usr/lib/raspberrypi-sys-mods/firstboot||g' /boot/cmdline.txt
 
+$EXTRA_SCRIPT
+
 echo "Setup completed successfully!"
+
