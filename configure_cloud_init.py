@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import argparse
 import os
+import platform
 import subprocess
 import tempfile
 from string import Template
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
+ARCH = platform.machine()
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def main():
@@ -14,7 +16,7 @@ def main():
 
     parser.add_argument(
         "--user-data",
-        default=os.path.join(current_dir, "templates", "user-data"),
+        default=os.path.join(CURRENT_DIR, "templates", "user-data"),
         help=(
             "Path to the file containing user-data content. "
             "If not provided, a default template will be used."
@@ -23,7 +25,7 @@ def main():
 
     parser.add_argument(
         "--meta-data",
-        default=os.path.join(current_dir, "templates", "meta-data"),
+        default=os.path.join(CURRENT_DIR, "templates", "meta-data"),
         help=(
             "Path to the file containing meta-data content. "
             "If not provided, a default template will be used."
@@ -44,7 +46,7 @@ def main():
 
     parser.add_argument(
         "--sandbox-script",
-        default=os.path.join(current_dir, "sandbox", "sandbox.sh"),
+        default=os.path.join(CURRENT_DIR, "sandbox", "sandbox.sh"),
         help="Path to the sandbox.sh script file.",
     )
 
@@ -103,6 +105,20 @@ def main():
         print(f"Rendered script saved to {temp_path}")
 
     # Run the sandbox script with the required arguments
+    command = (
+        [
+            "sudo",
+            "bash",
+            args.sandbox_script,
+            args.img_file,
+            "--script",
+            temp_path,
+        ],
+    )
+
+    if ARCH not in ["arm64", "aarch64"]:
+        command.append("--arm64")
+
     try:
         subprocess.run(
             [
@@ -110,7 +126,6 @@ def main():
                 "bash",
                 args.sandbox_script,
                 args.img_file,
-                "--arm64",
                 "--script",
                 temp_path,
             ],
