@@ -1,48 +1,70 @@
-# Raspberry OS Cloud Init
+# Raspberry Pi OS Cloud-Init Injector
 
-This repository provides an automated method to configure cloud-init for Raspberry Pi OS Lite images.
+This project automates the injection of cloud-init configuration into Raspberry Pi OS Lite image files. It uses a sandboxed environment to mount and modify the image, making it simple to prepare images for cloud-init based initialization.
 
-To clone repo with submodules use:
-```
+## Features
+
+- **Automated Injection:** Render and inject cloud-init configuration files (`user-data` and `meta-data`) into the image.
+- **Sandboxed Environment:** Uses loop devices and chroot to safely modify image files.
+- **ARM64 Support:** Optionally configures QEMU for ARM64 emulation on non-ARM systems.
+- **Extensible:** Easily customize the cloud-init configuration with extra scripts and templates.
+
+## Prerequisites
+
+- **Operating System:** Linux (with root privileges)
+- **Utilities:**
+  - `bash`
+  - `git`
+  - `sudo`
+  - `losetup`
+  - `fdisk`
+  - `mount`
+  - `chroot`
+- **Optional (for ARM64 emulation):**  
+  - `qemu-user-static` (specifically `qemu-aarch64-static`)
+
+## Installation
+
+Clone the repository along with its submodules:
+
+```bash
 git clone --recursive https://github.com/KubaTaba1uga/raspberry_os_lite_cloud_init.git
 ```
 
-## Prerequisites
-Ensure you have the following installed on your system:
-- `bash`
-- `sudo` privileges
-- `git`
+## Usage
 
-## Installation and Usage
+### 1. Configure Cloud-Init on an Image
 
-1. Clone the required repositories:
-   ```sh
-   git clone https://github.com/KubaTaba1uga/bash_modify_img_file_without_boot/
-   git clone https://github.com/KubaTaba1uga/raspberry_os_lite_cloud_init
-   ```
+The main entry point is the Python script `configure_cloud_init.py`. It renders a shell script from a template that injects the provided cloud-init configuration into the image. By default, it uses the templates in the `templates/` directory.
 
-2. Run the configuration script using `sandbox.sh`:
-   ```sh
-   sudo bash bash_modify_img_file_without_boot/sandbox.sh --arm64 --script raspberry_os_lite_cloud_init/configure_cloud_init.sh
-   ```
+**Basic Command:**
 
-## Description
-This process modifies a Raspberry Pi OS Lite image by injecting the cloud-init configuration using a sandboxed environment. The script applies the necessary changes to enable cloud-init on the system.
-
-## Notes
-- By default, `configure_cloud_init.sh` applies an unsecure and dummy configuration, creating a user called `dummy` with the password set to `pass`. Ensure to modify this configuration before deployment.
-- Ensure the script is executed with `sudo` permissions.
-- This script is designed for ARM64 architecture (`--arm64` flag). Modify as needed for other architectures.
-- Once your `.img` file is modified, you can run `sandbox.sh` again to modify `user-data` or `meta-data` as needed.
-- If cloud-init is not setting users or hostname, ensure that the boot partition label matches the one specified in 99_nocloud.cfg. You can check partition labels using:
+```bash
+sudo python3 configure_cloud_init.py /path/to/image.img
 ```
-blkid
-```
+
+## Repository Structure
+
+- **`configure_cloud_init.py`**  
+  Main script to render and inject cloud-init configuration.
+
+- **`sandbox/`**  
+  Contains the sandbox script (`sandbox.sh`) and related submodule for mounting and chroot operations.
+
+- **`templates/`**  
+  Templates for:
+  - `configure_cloud_init.sh`: The shell script template that applies the cloud-init configuration.
+  - `user-data`: Default cloud-init user configuration.
+  - `meta-data`: Default cloud-init meta-data.
+
+- **Documentation:**  
+  Additional details and troubleshooting tips can be found in `sandbox/docs/`.
 
 ## License
-This project is open-source under the MIT License.
+
+This project is licensed under the [MIT License](LICENSE).
 
 ## Author
-[KubaTaba1uga](https://github.com/KubaTaba1uga/)
 
+[KubaTaba1uga](https://github.com/KubaTaba1uga/)
 

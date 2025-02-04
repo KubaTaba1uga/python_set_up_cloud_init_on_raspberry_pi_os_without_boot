@@ -50,6 +50,8 @@ systemctl enable cloud-init
 # Remove init=/usr/lib/raspberrypi-sys-mods/firstboot from /boot/cmdline.txt
 sed -i 's|init=/usr/lib/raspberrypi-sys-mods/firstboot||g' /boot/cmdline.txt
 
+apt-get autoremove -y
+
 $EXTRA_SCRIPT
 
 echo "Setup completed successfully!"

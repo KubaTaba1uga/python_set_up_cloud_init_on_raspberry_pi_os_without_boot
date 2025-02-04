@@ -1,4 +1,20 @@
 #!/usr/bin/env python3
+"""
+Configure Cloud-Init on a Raspberry Pi OS Image
+
+This script renders a shell script from a template by substituting placeholders
+with the content of the cloud-init configuration files (user-data and meta-data).
+It then invokes a sandbox script to apply these configurations to the specified
+Raspberry Pi OS image file. Optionally, it supports ARM64 emulation by detecting
+the host architecture and adding the appropriate flag if necessary.
+
+License:
+    MIT License
+
+Author:
+    KubaTaba1uga
+"""
+
 import argparse
 import os
 import platform
