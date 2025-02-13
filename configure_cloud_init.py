@@ -121,30 +121,22 @@ def main():
         print(f"Rendered script saved to {temp_path}")
 
     # Run the sandbox script with the required arguments
-    command = (
-        [
-            "sudo",
-            "bash",
-            args.sandbox_script,
-            args.img_file,
-            "--script",
-            temp_path,
-        ],
-    )
+    command = [
+        "sudo",
+        "bash",
+        args.sandbox_script,
+        args.img_file,
+        "--script",
+        temp_path,
+    ]
+    
 
     if ARCH not in ["arm64", "aarch64"]:
         command.append("--arm64")
 
     try:
         subprocess.run(
-            [
-                "sudo",
-                "bash",
-                args.sandbox_script,
-                args.img_file,
-                "--script",
-                temp_path,
-            ],
+            command,
             stdout=None,
             stderr=None,
             check=True,
