@@ -28,7 +28,7 @@ This project automates the injection of cloud-init configuration into Raspberry 
 Clone the repository along with its submodules:
 
 ```bash
-git clone --recursive https://github.com/KubaTaba1uga/raspberry_os_lite_cloud_init.git
+git clone --recursive https://github.com/KubaTaba1uga/python_set_up_cloud_init_on_raspberry_pi_os_without_boot.git
 ```
 
 ## Usage
